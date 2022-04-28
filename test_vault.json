@@ -1,0 +1,12 @@
+{
+	"name": "test",
+	"encrypted": false,
+	"content": {
+		"reeee": {
+			"type": "note",
+			"content": "i am not here right now",
+			"time": 160000000
+		}
+	},
+	"time": 160000000
+}

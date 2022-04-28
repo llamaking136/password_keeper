@@ -1,0 +1,44 @@
+main
+|
++- config
+|  | Gets/sets configurations for password_keeper.
+|  +- default_vault <optional: --vault <name>>
+|  |  | Gets/sets the default vault for password_keeper.
+|  |  | Leave the optional argument blank to get default vault.
+|  |  -
+|  +- change_password <optional: --vault <name>>
+|  |  | Changes the password for all or one vault(s).
+|  |  | Leave the optional argument blank to change all vaults.
+|  |  -
+|  -
++- list <optional: --vault <name>>
+|  | Lists all vault contents.
+|  | Exclude '--vault' to get vault contents of default vault.
+|  +- --type <type name>
+|  |  | Filer all vault contents by their type.
+|  |  -
+|  -
++- add <optional: --vault <name>>
+|  | Adds content to a vault.
+|  | Exclude '--vault' to get vault contents of default vault.
+|  -
++- delete <content name> <optional: --vault <name>>
+|  | Deletes content from a vault.
+|  | Exclude '--vault' to get vault contents of default vault.
+|  -
++- get <content name> <optional: --vault <name>>
+|  | Gets content from a vault.
+|  | Exclude '--vault' to get vault contents of default vault.
+|  -
++- import <file name> <optional: --make-new-vault> <vault name>
+|  | Pours contents from a CSV file into a vault.
+|  | CSV header must go like this:
+|  | "OTP Auth","Notes","Password","Name","Type","URL","Username"
+|  -
++- create <vault name> <optional: --encrypted>
+|  | Creates new vault.
+|  -
++- delete_vault <vault name>
+|  | Deletes vault.
+|  -
+-
