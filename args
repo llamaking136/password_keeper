@@ -10,6 +10,10 @@ main
 |  |  | Changes the password for all or one vault(s).
 |  |  | Leave the optional argument blank to change all vaults.
 |  |  -
+|  +- cloud <optional: --ip <ip> --port <port>>
+|  |  | Gets/sets the cloud's IP/port.
+|  |  | Leave the optional arguments blank to get default values.
+|  |  -
 |  -
 +- list <optional: --vault <name>>
 |  | Lists all vault contents.
@@ -35,10 +39,14 @@ main
 |  | CSV header must go like this:
 |  | "OTP Auth","Notes","Password","Name","Type","URL","Username"
 |  -
-+- create <vault name> <optional: --encrypted>
++- create_vault <vault name> <optional: --encrypted>
 |  | Creates new vault.
 |  -
 +- delete_vault <vault name>
 |  | Deletes vault.
+|  -
++- sync
+|  | Uploads/downloads vault information to/from the cloud.
+|  | Cloud IP/port can be specified using config.
 |  -
 -

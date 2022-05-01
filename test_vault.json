@@ -1,12 +1,16 @@
 {
+	"uuid": "9597dd27-104c-41d4-9ebf-053bda7bad86",
 	"name": "test",
 	"encrypted": false,
+	"key": null,
 	"content": {
 		"reeee": {
 			"type": "note",
 			"content": "i am not here right now",
-			"time": 160000000
+			"last_updated": 1600000000,
+			"created": 1600000000
 		}
 	},
-	"time": 160000000
+	"last_updated": 1600000000,
+	"created": 1600000000
 }
