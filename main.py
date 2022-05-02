@@ -7,6 +7,8 @@ pk_dir = HOME + "/.pk"
 pk_vaults = pk_dir + "/vaults"
 logger = loguru.logger
 
+__version__ = "0.0.2"
+
 if not os.path.exists(pk_dir):
     logger.debug("pk directory not found, created new")
     os.mkdir(pk_dir)
@@ -89,6 +91,20 @@ class Vault():
             self.last_updated = data["last_updated"]
 
         if self.encrypted:
+            if not self.key:
+                print("tried to load encrypted vault without a key")
+                exit(1)
+            tries = 0
+            while True:
+                password = getpass.getpass(prompt="password:")
+                if hashlib.sha256(password).hexdigest() != self.key:
+                    print("invalid password")
+                    tries += 1
+                else:
+                    break
+                if tries > 3:
+                    print("too many tries, exiting")
+                    exit(1)
             self.decrypt()
 
     def writeToFile(self, filename):
@@ -102,6 +118,9 @@ class Vault():
                 "created": self.created,
                 "last_updated": int(time.time())
                 }))
+
+    def decrypt(self):
+
 
     def __repr__(self):
         return f"Vault(name='{self.name}', uuid='{self.uuid}')"
