@@ -4,7 +4,7 @@ import os, sys, pyaes, random, base64, hashlib, json, argparse, loguru, getpass,
 
 HOME = os.environ["HOME"]
 pk_dir = HOME + "/.pk"
-pk_vaults = pk_dir + "/vaults"
+pk_vaults = pk_dir + "/vaults/"
 logger = loguru.logger
 
 __version__ = "0.0.2"
@@ -19,8 +19,8 @@ if not os.path.exists(pk_dir + "/vaults"):
 default_config = {
         "default_vault": None,
         "auto_sync": False,
-        "server_ip": "0.0.0.0",
-        "server_port": 10900
+        "cloud_ip": "0.0.0.0",
+        "cloud_port": 10900
         }
 
 try:
@@ -97,12 +97,12 @@ class Vault():
             tries = 0
             while True:
                 password = getpass.getpass(prompt="password:")
-                if hashlib.sha256(password).hexdigest() != self.key:
+                if hashlib.sha256(password.encode("utf-8")).hexdigest() != self.key:
                     print("invalid password")
                     tries += 1
                 else:
                     break
-                if tries > 3:
+                if tries >= 3:
                     print("too many tries, exiting")
                     exit(1)
             self.decrypt()
@@ -120,7 +120,7 @@ class Vault():
                 }))
 
     def decrypt(self):
-
+        logger.debug("decrypting vault.....")
 
     def __repr__(self):
         return f"Vault(name='{self.name}', uuid='{self.uuid}')"
@@ -157,7 +157,7 @@ def get_default_vault():
         return None
     
     vault = Vault()
-    vault.loadFromFile(pk_home + "/vaults/" + stringify(default_vault) + ".json")
+    vault.loadFromFile(pk_vaults + stringify(default_vault) + ".json")
 
     return vault
 
@@ -165,7 +165,19 @@ def do_config(args):
     pass
 
 def do_list(args):
-    pass
+    if args.vault:
+        if not vault_exists(args.vault):
+            print("vault does not exist")
+            exit(1)
+        else:
+            vault = Vault()
+            vault.loadFromFile(pk_vaults + stringify(args.vault) + ".json")
+    elif config["default_vault"]:
+        vault = get_default_vault()
+    else:
+        return
+
+
 
 def do_add(args):
     pass
