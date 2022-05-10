@@ -9,6 +9,8 @@ logger = loguru.logger
 
 __version__ = "0.0.2"
 
+characters = "qwertyuiopasdfghjklzxcvbnm1234567890=_"
+
 if not os.path.exists(pk_dir):
     logger.debug("pk directory not found, created new")
     os.mkdir(pk_dir)
@@ -53,11 +55,24 @@ def vault_exists(name):
 # what if i keep a sha256 hash in the db and use md5 for the key?
 # whatever, its literally midnight and it sounds like a good idea
 
-def encrypt(key, data): # returns base64 of encrypted data
-    return base64.b64encode(pyaes.AESModeOfOperationCTR(key).encrypt(data))
+# why am i using md5
+# i dont know
+# whatever
+# just use a salt or something idk im not majick
 
-def decrypt(key, data): # returns bytes of decrypted data
-    return pyaes.AESModeOfOperationCTR(key).decrypt(base64.b64decode(data))
+# ok so
+# new update
+# vault keys are sha-256 with a salt
+# and the key stored in json has another salt
+# so two salts for the price of one
+
+def encrypt(key, data, salt=b""): # returns base64 of encrypted data
+    return base64.b64encode(pyaes.AESModeOfOperationCTR(key).encrypt(data + salt))
+
+def decrypt(key, data, salt=b""): # returns bytes of decrypted data
+    return pyaes.AESModeOfOperationCTR(key).decrypt(base64.b64decode(data + salt))
+
+logger.debug(decrypt(b"testtesttesttest", encrypt(b"testtesttesttest", b"hello, world!")))
 
 def stringify(name):
     output = ""
@@ -70,12 +85,14 @@ def stringify(name):
     return output
 
 class Vault():
-    def __init__(self, name=None, uuid=None, content=None, key=None, encrypted=False):
+    def __init__(self, name=None, uuid=None, content=None, key=None, encrypted=False, salt1=None, salt2=None):
         self.name = name
         self.uuid = uuid
         self.content = content
         self.key = key
         self.encrypted = encrypted
+        self.salt1 = salt1
+        self.salt2 = salt2
         self.created = int(time.time())
         self.last_updated = int(time.time())
 
@@ -87,6 +104,8 @@ class Vault():
             self.content = data["content"]
             self.encrypted = data["encrypted"]
             self.key = data["key"]
+            self.salt1 = data["salt1"]
+            self.salt2 = data["salt2"]
             self.created = data["created"]
             self.last_updated = data["last_updated"]
 
@@ -97,7 +116,7 @@ class Vault():
             tries = 0
             while True:
                 password = getpass.getpass(prompt="password:")
-                if hashlib.sha256(password.encode("utf-8")).hexdigest() != self.key:
+                if hashlib.sha256(password.encode("utf-8") + self.salt2.encode("utf-8")).hexdigest() != self.key:
                     print("invalid password")
                     tries += 1
                 else:
@@ -105,7 +124,14 @@ class Vault():
                 if tries >= 3:
                     print("too many tries, exiting")
                     exit(1)
-            self.decrypt()
+            logger.debug("decrypting vault...")
+            self.content = decrypt(hashlib.sha256(password.encode("utf-8") + self.salt1.encode("utf-8")).hexdigest().encode("utf-8"), self.content.encode("utf-8"))
+            if self.content[0] != ord("{") and self.content[-1] != ord("}"): # couldve just used ascii but whatever
+                print("error while decrypting vault: json not found")
+                logger.info(self.content)
+                self.content = None
+                return
+            self.content = self.content.decode("utf-8")
 
     def writeToFile(self, filename):
         with open(filename, "w") as f:
@@ -115,12 +141,11 @@ class Vault():
                 "content": self.content,
                 "key": self.key,
                 "encrypted": self.encrypted,
+                "salt1": self.salt1,
+                "salt2": self.salt2,
                 "created": self.created,
                 "last_updated": int(time.time())
                 }))
-
-    def decrypt(self):
-        logger.debug("decrypting vault.....")
 
     def __repr__(self):
         return f"Vault(name='{self.name}', uuid='{self.uuid}')"
@@ -196,7 +221,7 @@ def do_create_vault(args):
         print("vault name must be 32 characters or lower")
         exit(1)
 
-    vault = Vault(name=args.name, uuid=str(uuid.uuid4()), encrypted=args.encrypted)
+    vault = Vault(name=args.name, uuid=str(uuid.uuid4()), encrypted=args.encrypted, salt1=salt1, salt2=salt2)
     if vault.encrypted:
         pass1 = ""
         while True:
